@@ -7,6 +7,10 @@ Protoype C++11 MPI benchmark support library inspired by [google/benchmark](gith
 An example ping-pong benchmark (bin/pingpong.cpp)
 
 ```c++
+#include "bench/bench.hpp"
+
+#include <mpi.h>
+
 void pingpong(bench::State &state) {
 
   const int rank = bench::world_rank();
@@ -33,7 +37,6 @@ void pingpong(bench::State &state) {
 }
 
 int main(int argc, char **argv) {
-
   bench::init(argc, argv);
   bench::register_bench("pingpong", pingpong)->timing_root_rank()->no_iter_barrier();
   bench::run_benchmarks();

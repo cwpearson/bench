@@ -2,8 +2,6 @@
 
 #include <mpi.h>
 
-#include <iostream>
-
 void pingpong(bench::State &state) {
 
   const int rank = bench::world_rank();
@@ -30,7 +28,6 @@ void pingpong(bench::State &state) {
 }
 
 int main(int argc, char **argv) {
-
   bench::init(argc, argv);
   bench::register_bench("pingpong", pingpong)->timing_root_rank()->no_iter_barrier();
   bench::run_benchmarks();
