@@ -60,17 +60,17 @@ The reported number of bytes will be bytes / second.
 
 ## 
 
-* `Benchmark::timing_max_rank()`: 
-* `Benchmark::timing_root_rank()`: 
+* `Benchmark::timing_max_rank()`: report the maximum time consumed across all ranks
+* `Benchmark::timing_root_rank()`: only record time in rank 0
 * `Benchmark::no_iter_barrier()`: Do not do an `MPI_Barrier()` between iterations.
 
 ## Roadmap
 
 - [ ] Automatic Timing
- - [x] `timing_root_rank`: only record time in rank 0
- - [x] `timing_max_rank`: report the maximum time consumed across all ranks
- - [ ] `timing_wall`: the wall time from the first rank starts to the last rank ends
- - [ ] `timing_aggregate`: aggregate time consumed in each rank
+  - [x] `timing_root_rank`
+  - [x] `timing_max_rank`
+  - [ ] `timing_wall`: the wall time from the first rank starts to the last rank ends
+  - [ ] `timing_aggregate`: aggregate time consumed in each rank
 - [ ] Manual timing
   - [x] state.pause_timing()
   - [x] state.resume_timing()
