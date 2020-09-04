@@ -86,8 +86,8 @@ public:
       : iterations_(iterations), bytesProcessed_(0), error_(false),
         timer_(timer), iterBarrier_(iterBarrier) {}
 
-  Iterator begin();
-  Iterator end();
+  BENCH_ALWAYS_INLINE Iterator begin();
+  BENCH_ALWAYS_INLINE Iterator end();
 
   void start_running() { timer_->resume(); }
   void finish_running() { timer_->pause(); }
@@ -126,14 +126,14 @@ public:
 
 #ifdef BENCH_USE_MPI
     if (iterBarrier_) {
-      // timing was paused in operator++
       MPI_Barrier(MPI_COMM_WORLD);
+      // timing was paused in operator++
       resume_timing();
     }
 #endif
 
     // if (__builtin_expect(remaining_ != 0, true)) {
-    if (remaining_ != 0, false) {
+    if (remaining_ != 0) {
       return true;
     }
     parent_->finish_running();
@@ -144,7 +144,7 @@ public:
 
 #ifdef BENCH_USE_MPI
     if (iterBarrier_) {
-      // pause timer before barrier
+      // pause timer before barrier, to be resumed in operator!=
       pause_timing();
     }
 #endif
@@ -157,8 +157,8 @@ public:
   BENCH_ALWAYS_INLINE void resume_timing() { parent_->timer_->resume(); }
 };
 
-inline State::Iterator State::begin() { return State::Iterator(this); }
-inline State::Iterator State::end() {
+inline BENCH_ALWAYS_INLINE State::Iterator State::begin() { return State::Iterator(this); }
+inline BENCH_ALWAYS_INLINE State::Iterator State::end() {
   start_running();
   return State::Iterator();
 }
@@ -174,11 +174,13 @@ public:
   bool iter_barrier() { return iterBarrier_; }
 
   // only record time at rank 0
+
   Benchmark *timing_root_rank() {
     if (timer_) {
       delete timer_;
     }
 
+    // FIXME: during static registration, this will be before MPI_Init
     if (world_rank() == 0) {
       timer_ = new WallTimer();
     } else {
@@ -204,7 +206,8 @@ private:
   bool iterBarrier_;
 };
 
-extern std::vector<Benchmark *> benchmarks;
+// get all registered benchmarks
+std::vector<Benchmark *> &benchmarks();
 
 typedef void (*Function)(State &);
 
@@ -229,3 +232,26 @@ Benchmark *RegisterBenchmark(const char *name, Fn &&fn, Args &&... args) {
 #endif
 
 } // namespace bench
+
+#if defined(__COUNTER__) && (__COUNTER__ + 1 == __COUNTER__ + 0)
+#define BENCH_PRIVATE_UNIQUE_ID __COUNTER__
+#else
+#define BENCH_PRIVATE_UNIQUE_ID __LINE__
+#endif
+
+// Helpers for generating unique variable names
+#define BENCH_UNIQUE_NAME(n) \
+  BENCH_PRIVATE_CONCAT(_bench_, BENCH_PRIVATE_UNIQUE_ID, n)
+#define BENCH_PRIVATE_CONCAT(a, b, c) BENCH_PRIVATE_CONCAT2(a, b, c)
+#define BENCH_PRIVATE_CONCAT2(a, b, c) a##b##c
+
+#define BENCH_DECLARE(x) static bench::Benchmark *BENCH_UNIQUE_NAME(x)
+
+#define BENCH(x) BENCH_DECLARE(x) = bench::register_bench(#x, x)
+
+#define BENCH_MAIN()                                                           \
+  int main(int argc, char **argv) {                                            \
+    bench::init(argc, argv);                                                   \
+    bench::run_benchmarks();                                                   \
+    bench::finalize();                                                         \
+  }

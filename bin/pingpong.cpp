@@ -27,9 +27,5 @@ void pingpong(bench::State &state) {
   delete[] rbuf;
 }
 
-int main(int argc, char **argv) {
-  bench::init(argc, argv);
-  bench::register_bench("pingpong", pingpong)->timing_root_rank()->no_iter_barrier();
-  bench::run_benchmarks();
-  bench::finalize();
-}
+BENCH(pingpong)->timing_root_rank()->no_iter_barrier();
+BENCH_MAIN()

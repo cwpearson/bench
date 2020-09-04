@@ -9,6 +9,11 @@
 
 namespace bench {
 
+std::vector<Benchmark *> &benchmarks() {
+  static std::vector<Benchmark *> benchmarks;
+  return benchmarks;
+}
+
 void init(int &argc, char **&argv) {
 #ifdef BENCH_USE_MPI
   MPI_Init(&argc, &argv);
@@ -41,7 +46,7 @@ int world_size() {
 
 void run_benchmarks() {
 
-  for (Benchmark *benchmark : benchmarks) {
+  for (Benchmark *benchmark : benchmarks()) {
     if (0 == world_rank()) {
       std::cerr << "running " << benchmark->name() << "\n";
     }
@@ -68,7 +73,6 @@ void run_benchmarks() {
       double sElapsed = nsElapsed / 1e9;
       double bytes = state.bytes_processed();
 
-
       std::cout << benchmark->name() << ": " << nsElapsed << "ns";
       if (state.bytes_processed()) {
         std::cout << " " << bytes / sElapsed << "B/s";
@@ -79,12 +83,10 @@ void run_benchmarks() {
 }
 
 Benchmark *register_bench(const char *name, Function fn) {
-  benchmarks.push_back(new FunctionBenchmark(name, fn));
-  return benchmarks.back();
+  benchmarks().push_back(new FunctionBenchmark(name, fn));
+  return benchmarks().back();
 }
 
 void FunctionBenchmark::run(State &state) { fn_(state); }
-
-/*extern*/ std::vector<Benchmark *> benchmarks;
 
 } // namespace bench

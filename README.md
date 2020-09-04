@@ -94,7 +94,7 @@ The reported number of bytes will be bytes / second.
   - [ ] max
 - [ ] JSON reporter
 - [ ] Benchmark registration
-  - [ ] static
-    - [ ] Auto-generated main function
+  - [x] static
+    - [x] Auto-generated main function
   - [x] function pointer
   - [ ] lambda function
